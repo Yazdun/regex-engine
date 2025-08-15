@@ -1,4 +1,6 @@
 import { type Token, Tokenizer } from "./tokenizer";
+import { readdirSync, statSync } from "fs";
+import { join } from "path";
 
 function printTokens(tokens: Token[]): (string | Token)[] {
   let result: (string | Token)[] = [];
@@ -613,15 +615,65 @@ class GrepMatcher {
   }
 }
 
+function collectFilesRecursively(dirPath: string): string[] {
+  const files: string[] = [];
+
+  try {
+    const entries = readdirSync(dirPath);
+
+    for (const entry of entries) {
+      const fullPath = join(dirPath, entry);
+      const stat = statSync(fullPath);
+
+      if (stat.isDirectory()) {
+        // Recursively collect files from subdirectory
+        files.push(...collectFilesRecursively(fullPath));
+      } else if (stat.isFile()) {
+        // Add file to collection
+        files.push(fullPath);
+      }
+    }
+  } catch (error) {
+    // Skip directories/files that can't be read
+  }
+
+  return files;
+}
+
 async function main() {
   const args = process.argv;
 
-  if (args[2] !== "-E") {
-    console.log("Expected first argument to be '-E'");
+  // Parse flags and arguments
+  let isRecursive = false;
+  let patternIndex = 3;
+  let pathsIndex = 4;
+
+  if (args[2] === "-r") {
+    isRecursive = true;
+    if (args[3] !== "-E") {
+      console.log("Expected '-E' after '-r'");
+      process.exit(1);
+    }
+    patternIndex = 4;
+    pathsIndex = 5;
+  } else if (args[2] !== "-E") {
+    console.log("Expected first argument to be '-E' or '-r'");
     process.exit(1);
   }
-  const pattern = args[3];
-  const filenames = args.slice(4); // Get all filenames from args[4] onwards
+
+  const pattern = args[patternIndex];
+  const paths = args.slice(pathsIndex);
+
+  // Collect files to search
+  let filenames: string[] = [];
+  if (isRecursive) {
+    // Recursively collect files from directories
+    for (const path of paths) {
+      filenames.push(...collectFilesRecursively(path));
+    }
+  } else {
+    filenames = paths;
+  }
 
   try {
     const matcher = new GrepMatcher(pattern);
@@ -640,7 +692,7 @@ async function main() {
       }
     } else {
       // Read from file(s)
-      const shouldPrintFilename = filenames.length > 1;
+      const shouldPrintFilename = filenames.length > 1 || isRecursive;
 
       for (const filename of filenames) {
         const inputText = await Bun.file(filename).text();
