@@ -17,7 +17,11 @@ function printTokens(tokens: Token[]): (string | Token)[] {
         const simplifiedBranches = token.branches.map((branch) =>
           printTokens(branch),
         );
-        result.push({ ...token, branches: simplifiedBranches } as Token);
+        result.push({
+          ...token,
+          branches: simplifiedBranches,
+          groupNumber: token.groupNumber,
+        } as Token);
         break;
 
       case "backreference":
@@ -37,15 +41,13 @@ class GrepMatcher {
   constructor(pattern: string) {
     this.pattern = pattern;
     this.tokens = Tokenizer.tokenize(pattern);
-    console.log(`original pattern: ${pattern}`);
-    console.log(`Tokens: ${JSON.stringify(printTokens(this.tokens))}`);
   }
 
   private matchToken(
     token: Token,
     input: string[],
     pos: number,
-    capturedGroups: string[] = [],
+    capturedGroups: Map<number, string> = new Map(),
   ): number[] {
     if (pos > input.length) return [];
 
@@ -74,8 +76,8 @@ class GrepMatcher {
       case "alternation":
         return this.matchAlternation(token, input, pos, capturedGroups);
       case "backreference":
-        if (token.group <= capturedGroups.length) {
-          const capturedText = capturedGroups[token.group - 1];
+        if (capturedGroups.has(token.group)) {
+          const capturedText = capturedGroups.get(token.group)!;
 
           if (capturedText && pos + capturedText.length <= input.length) {
             const inputSlice = input
@@ -86,7 +88,6 @@ class GrepMatcher {
               ? [pos + capturedText.length]
               : [];
           }
-        } else {
         }
         return [];
       default:
@@ -98,12 +99,9 @@ class GrepMatcher {
     token: Token & { type: "alternation" },
     input: string[],
     pos: number,
-    capturedGroups: string[] = [],
+    capturedGroups: Map<number, string> = new Map(),
   ): number[] {
     const positions = [];
-    console.log(
-      `Attention: matching alternation for token ${JSON.stringify(printTokens([token]))}`,
-    );
     for (const branch of token.branches) {
       let currentPos = pos;
       let success = true;
@@ -125,7 +123,6 @@ class GrepMatcher {
         positions.push(currentPos);
       }
     }
-    console.log("After matching alternation", positions);
     return positions;
   }
 
@@ -135,22 +132,20 @@ class GrepMatcher {
     token: Token & { type: "quantifier" },
     input: string[],
     pos: number,
-    capturedGroups: string[] = [],
+    capturedGroups: Map<number, string> = new Map(),
   ): number[] {
-    console.log(
-      `Attention: matching quantifier for token: ${JSON.stringify(printTokens([token]))}`,
-    );
     const results: number[] = [];
     if (token.value === "?") {
       // match 0 or 1 time
-      results.push(pos);
       const oneMatch = this.matchToken(token.token, input, pos, capturedGroups);
-      // if token is literal, this will do a literal match, and advance to pos+1
+      // Try 1 match first (greedy), then 0 matches
       results.push(...oneMatch);
-    } else if (token.value === "*") {
-      // match 0+ times
       results.push(pos);
+    } else if (token.value === "*") {
+      // match 0+ times (greedy - longest first)
       let currPos = pos;
+      const allMatches = [pos]; // 0 matches
+
       while (true) {
         const nextPos = this.matchToken(
           token.token,
@@ -160,10 +155,15 @@ class GrepMatcher {
         );
         if (nextPos.length === 0) break;
         currPos = nextPos[0];
-        results.push(currPos);
+        allMatches.push(currPos);
+      }
+
+      // Return in reverse order for greedy matching with backtracking
+      for (let i = allMatches.length - 1; i >= 0; i--) {
+        results.push(allMatches[i]);
       }
     } else if (token.value === "+") {
-      // match 1+ times
+      // match 1+ times (greedy - longest first)
       let currPos = pos;
       const firstMatch = this.matchToken(
         token.token,
@@ -174,7 +174,7 @@ class GrepMatcher {
       if (firstMatch.length === 0) return [];
 
       currPos = firstMatch[0];
-      results.push(currPos);
+      const allMatches = [currPos]; // 1 match minimum
 
       while (true) {
         const nextPos = this.matchToken(
@@ -185,7 +185,12 @@ class GrepMatcher {
         );
         if (nextPos.length == 0) break;
         currPos = nextPos[0];
-        results.push(currPos);
+        allMatches.push(currPos);
+      }
+
+      // Return in reverse order for greedy matching with backtracking
+      for (let i = allMatches.length - 1; i >= 0; i--) {
+        results.push(allMatches[i]);
       }
     }
 
@@ -197,7 +202,7 @@ class GrepMatcher {
     input: string[],
     tokenIdx: number,
     inputPos: number,
-    capturedGroups: string[] = [],
+    capturedGroups: Map<number, string> = new Map(),
   ): boolean {
     // base case: matched all tokens
     if (tokenIdx >= tokens.length) {
@@ -205,9 +210,6 @@ class GrepMatcher {
     }
 
     const token = tokens[tokenIdx];
-    console.log(
-      `Matching: \n\t token: ${JSON.stringify(token)} \n\t ${input.slice(inputPos)} \n\t ${tokenIdx} \n\t ${inputPos}`,
-    );
 
     if (token.type === "quantifier" && token.token.type === "alternation") {
       return this.matchQuantifiedAlternation(
@@ -223,26 +225,63 @@ class GrepMatcher {
     // Handle alternation (capturing groups)
     if (token.type === "alternation") {
       for (const branch of token.branches) {
-        const result = this.matchBranch(
-          branch,
-          input,
-          inputPos,
-          capturedGroups,
-        );
-        if (result) {
-          // Add the captured text to the captured groups
-          const newCapturedGroups = [...capturedGroups, result.capturedText];
+        // Special handling for single-quantifier branches to enable proper backtracking
+        if (branch.length === 1 && branch[0].type === "quantifier") {
+          const quantifierToken = branch[0];
+          const possiblePositions = this.matchToken(
+            quantifierToken,
+            input,
+            inputPos,
+            capturedGroups,
+          );
 
-          if (
-            this.matchFromPosition(
-              tokens,
-              input,
-              tokenIdx + 1,
-              result.endPos,
-              newCapturedGroups,
-            )
-          ) {
-            return true;
+          // Try each possible position (longest first for greedy matching)
+          for (const endPos of possiblePositions.sort((a, b) => b - a)) {
+            const capturedText = input.slice(inputPos, endPos).join("");
+            const newCapturedGroups = new Map(capturedGroups);
+            newCapturedGroups.set(token.groupNumber, capturedText);
+
+            if (
+              this.matchFromPosition(
+                tokens,
+                input,
+                tokenIdx + 1,
+                endPos,
+                newCapturedGroups,
+              )
+            ) {
+              return true;
+            }
+          }
+        } else {
+          // Regular branch handling
+          const result = this.matchBranch(
+            branch,
+            input,
+            inputPos,
+            capturedGroups,
+          );
+          if (result) {
+            // Merge existing captured groups with new ones from the branch
+            const newCapturedGroups = new Map(capturedGroups);
+            // Add all groups from the branch result
+            for (const [key, value] of result.updatedGroups) {
+              newCapturedGroups.set(key, value);
+            }
+            // Add the captured text for this alternation group
+            newCapturedGroups.set(token.groupNumber, result.capturedText);
+
+            if (
+              this.matchFromPosition(
+                tokens,
+                input,
+                tokenIdx + 1,
+                result.endPos,
+                newCapturedGroups,
+              )
+            ) {
+              return true;
+            }
           }
         }
       }
@@ -271,57 +310,130 @@ class GrepMatcher {
     branch: Token[],
     input: string[],
     startPos: number,
-    capturedGroups: string[],
-  ): { endPos: number; capturedText: string } | null {
+    capturedGroups: Map<number, string>,
+  ): {
+    endPos: number;
+    capturedText: string;
+    updatedGroups: Map<number, string>;
+  } | null {
     let currentPos = startPos;
     let capturedText = "";
+    let workingGroups = new Map(capturedGroups);
 
     for (const branchToken of branch) {
-      const nextPositions = this.matchToken(
-        branchToken,
-        input,
-        currentPos,
-        capturedGroups,
-      );
+      // Handle alternation (nested capturing groups) specially
+      if (branchToken.type === "alternation") {
+        for (const nestedBranch of branchToken.branches) {
+          const nestedResult = this.matchBranch(
+            nestedBranch,
+            input,
+            currentPos,
+            workingGroups,
+          );
 
-      if (nextPositions.length === 0) {
-        return null;
-      }
+          if (nestedResult) {
+            // Store the captured text for this group
+            workingGroups.set(
+              branchToken.groupNumber,
+              nestedResult.capturedText,
+            );
+            // Merge nested groups with current working groups
+            for (const [key, value] of nestedResult.updatedGroups) {
+              workingGroups.set(key, value);
+            }
 
-      // Try each possible next position (greedy - longest match first)
-      const sortedPositions = [...nextPositions].sort((a, b) => b - a);
-      for (const nextPos of sortedPositions) {
-        const matchedText = input.slice(currentPos, nextPos).join("");
+            const matchedText = nestedResult.capturedText;
+            capturedText += matchedText;
+            currentPos = nestedResult.endPos;
 
-        // If this is the last token in the branch, we're done
-        if (branch.indexOf(branchToken) === branch.length - 1) {
-          const finalCapturedText = capturedText + matchedText;
+            // If this is the last token in the branch, we're done
+            if (branch.indexOf(branchToken) === branch.length - 1) {
+              return {
+                endPos: currentPos,
+                capturedText: capturedText,
+                updatedGroups: workingGroups,
+              };
+            }
 
-          return { endPos: nextPos, capturedText: finalCapturedText };
+            // Try to match the rest of the branch
+            const remainingBranch = branch.slice(
+              branch.indexOf(branchToken) + 1,
+            );
+
+            const result = this.matchBranch(
+              remainingBranch,
+              input,
+              currentPos,
+              workingGroups,
+            );
+
+            if (result) {
+              return {
+                endPos: result.endPos,
+                capturedText: capturedText + result.capturedText,
+                updatedGroups: result.updatedGroups,
+              };
+            }
+
+            // Continue to try other nested branches if this one didn't work
+          }
         }
 
-        // Try to match the rest of the branch from this position
-        const remainingBranch = branch.slice(branch.indexOf(branchToken) + 1);
-        const result = this.matchBranch(
-          remainingBranch,
+        // If no nested branch matched, this branch fails
+        return null;
+      } else {
+        // Handle regular tokens
+        const nextPositions = this.matchToken(
+          branchToken,
           input,
-          nextPos,
-          capturedGroups,
+          currentPos,
+          workingGroups,
         );
 
-        if (result) {
-          return {
-            endPos: result.endPos,
-            capturedText: capturedText + matchedText + result.capturedText,
-          };
+        if (nextPositions.length === 0) {
+          return null;
         }
-      }
 
-      // If no position worked, this branch fails
-      return null;
+        // Try each possible next position (greedy - longest match first)
+        const sortedPositions = [...nextPositions].sort((a, b) => b - a);
+        for (const nextPos of sortedPositions) {
+          const matchedText = input.slice(currentPos, nextPos).join("");
+
+          // If this is the last token in the branch, we're done
+          if (branch.indexOf(branchToken) === branch.length - 1) {
+            const finalCapturedText = capturedText + matchedText;
+
+            return {
+              endPos: nextPos,
+              capturedText: finalCapturedText,
+              updatedGroups: workingGroups,
+            };
+          }
+
+          // Try to match the rest of the branch from this position
+          const remainingBranch = branch.slice(branch.indexOf(branchToken) + 1);
+          const result = this.matchBranch(
+            remainingBranch,
+            input,
+            nextPos,
+            workingGroups,
+          );
+
+          if (result) {
+            return {
+              endPos: result.endPos,
+              capturedText: capturedText + matchedText + result.capturedText,
+              updatedGroups: result.updatedGroups,
+            };
+          }
+        }
+
+        // If no position worked, this branch fails
+        return null;
+      }
     }
 
-    return { endPos: currentPos, capturedText };
+    return { endPos: currentPos, capturedText, updatedGroups: workingGroups };
   }
 
   private matchQuantifiedAlternation(
@@ -330,7 +442,7 @@ class GrepMatcher {
     input: string[],
     tokenIdx: number,
     inputPos: number,
-    capturedGroups: string[] = [],
+    capturedGroups: Map<number, string> = new Map(),
   ): boolean {
     const alternation = token.token as Token & { type: "alternation" };
     const quantifier = token.value;
@@ -402,7 +514,7 @@ class GrepMatcher {
     tokenIdx: number,
     inputPos: number,
     minMatches: number,
-    capturedGroups: string[] = [],
+    capturedGroups: Map<number, string> = new Map(),
     matchCount: number = 0,
   ) {
     // if we have met the minimum, continue with the rest of the pattern
@@ -446,7 +558,6 @@ class GrepMatcher {
         }
         possiblePositions = nextPositions;
       }
-      console.log(`success: ${success}`);
 
       if (success) {
         for (const endPos of possiblePositions) {
@@ -479,13 +590,18 @@ class GrepMatcher {
     // check for start anchor
     if (this.tokens[0]?.type === "anchor" && this.tokens[0]?.value === "^") {
       // now it must match from the beginning
-      return this.matchFromPosition(this.tokens.slice(1), inputChars, 0, 0, []);
+      return this.matchFromPosition(
+        this.tokens.slice(1),
+        inputChars,
+        0,
+        0,
+        new Map(),
+      );
     }
 
-    console.log(`input: ${JSON.stringify(inputChars)}`);
     // otherwise, try matching from each position
     for (let i = 0; i < inputChars.length; i++) {
-      if (this.matchFromPosition(this.tokens, inputChars, 0, i, [])) {
+      if (this.matchFromPosition(this.tokens, inputChars, 0, i, new Map())) {
         return true;
       }
     }

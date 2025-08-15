@@ -5,7 +5,7 @@ export type Token =
   | { type: "digit" }
   | { type: "group"; chars: string[]; negated: boolean }
   | { type: "anchor"; value: "$" | "^" }
-  | { type: "alternation"; branches: Token[][] }
+  | { type: "alternation"; branches: Token[][]; groupNumber: number }
   | { type: "quantifier"; value: "?" | "+" | "*"; token: Token }
   | { type: "backreference"; group: number };
 
@@ -36,6 +36,13 @@ function splitByPipe(pattern: string[]): string[] {
 
 export class Tokenizer {
   static tokenize(pattern: string): Token[] {
+    return Tokenizer.tokenizeWithGroupCounter(pattern, { counter: 0 }).tokens;
+  }
+
+  static tokenizeWithGroupCounter(
+    pattern: string,
+    groupCounter: { counter: number },
+  ): { tokens: Token[]; groupCounter: { counter: number } } {
     const chars = Array.from(pattern);
     const result: Token[] = [];
     let i = 0;
@@ -49,7 +56,11 @@ export class Tokenizer {
           break;
 
         case "(":
-          const [parenToken, parenIdx] = Tokenizer.handleParen(chars, i);
+          const [parenToken, parenIdx] = Tokenizer.handleParen(
+            chars,
+            i,
+            groupCounter,
+          );
           result.push(parenToken);
           i = parenIdx;
           break;
@@ -103,7 +114,7 @@ export class Tokenizer {
       }
     }
 
-    return result;
+    return { tokens: result, groupCounter };
   }
 
   static handleSpecialChar(char: string): Token {
@@ -114,17 +125,26 @@ export class Tokenizer {
     else return { type: "literal", value: char };
   }
 
-  static handleParen(chars: string[], i: number): [Token, number] {
+  static handleParen(
+    chars: string[],
+    i: number,
+    groupCounter: { counter: number },
+  ): [Token, number] {
     const closingParenIdx = Tokenizer.findClosingParen(chars, i);
     if (closingParenIdx === -1) {
       throw new Error("Unclosed Parentheses");
     }
     const groupContent = chars.slice(i + 1, closingParenIdx);
-    const tokenBranches = splitByPipe(groupContent).map((part) =>
-      Tokenizer.tokenize(part),
+    const currentGroupNumber = ++groupCounter.counter;
+    const tokenBranches = splitByPipe(groupContent).map(
+      (part) => Tokenizer.tokenizeWithGroupCounter(part, groupCounter).tokens,
     );
     return [
-      { type: "alternation", branches: tokenBranches },
+      {
+        type: "alternation",
+        branches: tokenBranches,
+        groupNumber: currentGroupNumber,
+      },
       closingParenIdx + 1,
     ];
   }
