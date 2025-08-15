@@ -11,6 +11,11 @@ function matchPattern(inputLine: string, pattern: string): boolean {
       case "\\w":
         return /\w/.test(inputLine);
       default:
+        if (pattern.startsWith("[") && pattern.endsWith("]")) {
+          const regex = new RegExp(pattern);
+          return regex.test(inputLine);
+        }
+
         return inputLine.includes(pattern);
     }
   } else {
