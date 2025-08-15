@@ -6,6 +6,8 @@ const inputLine: string = await Bun.stdin.text();
 function matchToken(input: string, token: string): boolean {
   if (!input[0]) return false;
   switch (true) {
+    case token === ".":
+      return true;
     case token === "\\d":
       return /\d/.test(input[0]);
     case token === "\\w":
