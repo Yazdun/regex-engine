@@ -54,6 +54,10 @@ function matchPattern(input: string, pattern: string): boolean {
 }
 
 function matchPatternAnywhere(input: string, pattern: string): boolean {
+  if (pattern.startsWith("^")) {
+    return matchPattern(input, pattern.slice(1));
+  }
+
   for (let i = 0; i <= input.length; i++) {
     if (matchPattern(input.slice(i), pattern)) return true;
   }
