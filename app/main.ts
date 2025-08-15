@@ -600,7 +600,9 @@ class GrepMatcher {
     }
 
     // otherwise, try matching from each position
-    for (let i = 0; i < inputChars.length; i++) {
+    // Always try at least position 0, even for empty strings
+    const maxPos = Math.max(1, inputChars.length);
+    for (let i = 0; i < maxPos; i++) {
       if (this.matchFromPosition(this.tokens, inputChars, 0, i, new Map())) {
         return true;
       }
@@ -621,18 +623,26 @@ async function main() {
   const pattern = args[3];
   const filename = args[4];
 
-  let inputLine: string;
+  let inputText: string;
   if (filename) {
-    inputLine = await Bun.file(filename).text();
+    inputText = await Bun.file(filename).text();
   } else {
-    inputLine = await Bun.stdin.text();
+    inputText = await Bun.stdin.text();
   }
 
   try {
     const matcher = new GrepMatcher(pattern);
-    const trimmedLine = inputLine.trim();
-    if (matcher.match(trimmedLine)) {
-      console.log(trimmedLine);
+    const lines = inputText.split("\n");
+    let hasMatches = false;
+
+    for (const line of lines) {
+      if (matcher.match(line)) {
+        console.log(line);
+        hasMatches = true;
+      }
+    }
+
+    if (hasMatches) {
       process.exit(0);
     } else {
       process.exit(1);
