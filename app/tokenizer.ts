@@ -6,7 +6,8 @@ export type Token =
   | { type: "group"; chars: string[]; negated: boolean }
   | { type: "anchor"; value: "$" | "^" }
   | { type: "alternation"; branches: Token[][] }
-  | { type: "quantifier"; value: "?" | "+" | "*"; token: Token };
+  | { type: "quantifier"; value: "?" | "+" | "*"; token: Token }
+  | { type: "backreference"; group: number };
 
 function splitByPipe(pattern: string[]): string[] {
   const parts: string[] = [];
@@ -108,6 +109,8 @@ export class Tokenizer {
   static handleSpecialChar(char: string): Token {
     if (char === "d") return { type: "digit" };
     else if (char === "w") return { type: "word" };
+    else if (/[0-9]/.test(char))
+      return { type: "backreference", group: parseInt(char) };
     else return { type: "literal", value: char };
   }
 
