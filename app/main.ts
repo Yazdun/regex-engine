@@ -621,24 +621,41 @@ async function main() {
     process.exit(1);
   }
   const pattern = args[3];
-  const filename = args[4];
-
-  let inputText: string;
-  if (filename) {
-    inputText = await Bun.file(filename).text();
-  } else {
-    inputText = await Bun.stdin.text();
-  }
+  const filenames = args.slice(4); // Get all filenames from args[4] onwards
 
   try {
     const matcher = new GrepMatcher(pattern);
-    const lines = inputText.split("\n");
     let hasMatches = false;
 
-    for (const line of lines) {
-      if (matcher.match(line)) {
-        console.log(line);
-        hasMatches = true;
+    if (filenames.length === 0) {
+      // Read from stdin
+      const inputText = await Bun.stdin.text();
+      const lines = inputText.split("\n");
+
+      for (const line of lines) {
+        if (matcher.match(line)) {
+          console.log(line);
+          hasMatches = true;
+        }
+      }
+    } else {
+      // Read from file(s)
+      const shouldPrintFilename = filenames.length > 1;
+
+      for (const filename of filenames) {
+        const inputText = await Bun.file(filename).text();
+        const lines = inputText.split("\n");
+
+        for (const line of lines) {
+          if (matcher.match(line)) {
+            if (shouldPrintFilename) {
+              console.log(`${filename}:${line}`);
+            } else {
+              console.log(line);
+            }
+            hasMatches = true;
+          }
+        }
       }
     }
 
