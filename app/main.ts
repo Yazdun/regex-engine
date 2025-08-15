@@ -619,11 +619,20 @@ async function main() {
     process.exit(1);
   }
   const pattern = args[3];
-  const inputLine: string = await Bun.stdin.text();
+  const filename = args[4];
+
+  let inputLine: string;
+  if (filename) {
+    inputLine = await Bun.file(filename).text();
+  } else {
+    inputLine = await Bun.stdin.text();
+  }
 
   try {
     const matcher = new GrepMatcher(pattern);
-    if (matcher.match(inputLine.trim())) {
+    const trimmedLine = inputLine.trim();
+    if (matcher.match(trimmedLine)) {
+      console.log(trimmedLine);
       process.exit(0);
     } else {
       process.exit(1);
