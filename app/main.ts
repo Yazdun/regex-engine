@@ -2,46 +2,9 @@ import { type Token, Tokenizer } from "./tokenizer";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
-function printTokens(tokens: Token[]): (string | Token)[] {
-  let result: (string | Token)[] = [];
-  for (const token of tokens) {
-    switch (token.type) {
-      case "literal":
-        result.push(token.value);
-        break;
-
-      case "quantifier":
-        const innerSimplified = printTokens([token.token]);
-        result.push({ ...token, token: innerSimplified[0] } as Token);
-        break;
-
-      case "alternation":
-        const simplifiedBranches = token.branches.map((branch) =>
-          printTokens(branch),
-        );
-        result.push({
-          ...token,
-          branches: simplifiedBranches,
-          groupNumber: token.groupNumber,
-        } as Token);
-        break;
-
-      case "backreference":
-        result.push(token);
-        break;
-
-      default:
-        result.push(token);
-    }
-  }
-  return result;
-}
-
 class GrepMatcher {
-  private pattern;
   private tokens: Token[];
   constructor(pattern: string) {
-    this.pattern = pattern;
     this.tokens = Tokenizer.tokenize(pattern);
   }
 

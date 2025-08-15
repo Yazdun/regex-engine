@@ -1,0 +1,31 @@
+id,name,email,phone,department,hire_date,salary,status,manager_id,location
+1,John Smith,john.smith@company.com,+1-555-0101,Engineering,2021-03-15,85000,active,5,New York
+2,Sarah Johnson,sarah.johnson@company.com,+1-555-0102,Marketing,2020-07-22,72000,active,6,Los Angeles
+3,Michael Brown,mike.brown@company.com,+1-555-0103,Sales,2022-01-10,68000,active,7,Chicago
+4,Emily Davis,emily.davis@company.com,+1-555-0104,HR,2019-11-05,75000,inactive,8,Boston
+5,David Wilson,david.wilson@company.com,+1-555-0105,Engineering,2018-09-12,95000,active,,Seattle
+6,Lisa Anderson,lisa.anderson@company.com,+1-555-0106,Marketing,2020-02-28,78000,active,,Austin
+7,James Taylor,james.taylor@company.com,+1-555-0107,Sales,2021-06-18,71000,active,,Denver
+8,Jennifer Martinez,jennifer.martinez@company.com,+1-555-0108,HR,2017-12-03,82000,active,,Miami
+9,Robert Garcia,robert.garcia@company.com,+1-555-0109,Engineering,2022-08-14,89000,active,5,Portland
+10,Amanda Rodriguez,amanda.rodriguez@company.com,+1-555-0110,Finance,2021-04-07,77000,active,11,Phoenix
+11,Christopher Lee,chris.lee@company.com,+1-555-0111,Finance,2019-10-25,88000,active,,Atlanta
+12,Michelle White,michelle.white@company.com,+1-555-0112,Operations,2020-12-16,69000,inactive,13,Dallas
+13,Kevin Thompson,kevin.thompson@company.com,+1-555-0113,Operations,2018-05-30,91000,active,,Houston
+14,Jessica Clark,jessica.clark@company.com,+1-555-0114,Legal,2022-02-14,95000,active,15,San Francisco
+15,Daniel Lewis,daniel.lewis@company.com,+1-555-0115,Legal,2017-08-21,105000,active,,Washington DC
+16,Ashley Walker,ashley.walker@company.com,+1-555-0116,Customer Support,2023-01-09,52000,active,17,Remote
+17,Matthew Hall,matthew.hall@company.com,+1-555-0117,Customer Support,2020-03-11,58000,active,,Remote
+18,Stephanie Allen,stephanie.allen@company.com,+1-555-0118,Product,2021-09-27,83000,active,19,San Diego
+19,Ryan Young,ryan.young@company.com,+1-555-0119,Product,2019-01-14,92000,active,,Las Vegas
+20,Nicole King,nicole.king@company.com,+1-555-0120,Design,2022-05-03,74000,active,21,Nashville
+21,Andrew Wright,andrew.wright@company.com,+1-555-0121,Design,2018-11-19,87000,active,,Orlando
+22,Megan Scott,megan.scott@company.com,+1-555-0122,QA,2020-08-06,65000,inactive,23,Salt Lake City
+23,Brandon Green,brandon.green@company.com,+1-555-0123,QA,2019-04-17,71000,active,,Kansas City
+24,Rachel Adams,rachel.adams@company.com,+1-555-0124,DevOps,2021-12-01,94000,active,25,Minneapolis
+25,Justin Baker,justin.baker@company.com,+1-555-0125,DevOps,2017-06-08,102000,active,,Cleveland
+26,Samantha Nelson,samantha.nelson@company.com,+1-555-0126,Security,2022-03-22,98000,active,27,Detroit
+27,Tyler Carter,tyler.carter@company.com,+1-555-0127,Security,2018-07-13,108000,active,,Tampa
+28,Kimberly Mitchell,kim.mitchell@company.com,+1-555-0128,Data Science,2021-10-05,96000,active,29,Charlotte
+29,Gregory Perez,gregory.perez@company.com,+1-555-0129,Data Science,2019-12-20,112000,active,,Indianapolis
+30,Heather Roberts,heather.roberts@company.com,+1-555-0130,Business Intelligence,2020-05-14,79000,active,,Columbus

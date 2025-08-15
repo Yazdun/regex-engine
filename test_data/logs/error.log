@@ -1,0 +1,15 @@
+[ERROR] 2023-12-01T10:30:22Z - Connection timeout to database server db1.internal
+[FATAL] 2023-12-01T10:31:05Z - OutOfMemoryError: Java heap space exceeded
+[ERROR] 2023-12-01T10:33:12Z - HTTP 404: Resource not found /api/users/99999
+[ERROR] 2023-12-01T10:35:44Z - SQL injection attempt detected from 203.0.113.42
+[WARN]  2023-12-01T10:37:18Z - Slow query detected: SELECT * FROM orders WHERE date > '2023-01-01'
+[ERROR] 2023-12-01T10:39:55Z - Authentication failure: invalid credentials for admin@company.com
+[FATAL] 2023-12-01T10:42:33Z - System crash: segmentation fault in module payment_processor
+[ERROR] 2023-12-01T10:44:17Z - File not found: /var/uploads/document_12345.pdf
+[ERROR] 2023-12-01T10:46:28Z - Network unreachable: failed to connect to api.external.com
+[WARN]  2023-12-01T10:48:11Z - Certificate expires in 7 days: *.example.com
+[ERROR] 2023-12-01T10:50:39Z - Validation error: email format invalid for user input 'not-an-email'
+[FATAL] 2023-12-01T10:52:44Z - Kernel panic: unable to handle page request
+[ERROR] 2023-12-01T10:54:22Z - Permission denied: user 'guest' cannot access /admin/dashboard
+[ERROR] 2023-12-01T10:56:15Z - Parse error: malformed XML in config file line 47
+[WARN]  2023-12-01T10:58:33Z - Deprecated API endpoint used: /v1/legacy/users

@@ -1,0 +1,20 @@
+2023-12-01 10:30:15 INFO  Starting application server on port 8080
+2023-12-01 10:30:16 INFO  Database connection established
+2023-12-01 10:30:17 DEBUG Loading configuration from /etc/app/config.json
+2023-12-01 10:32:45 INFO  User login: john.doe@example.com
+2023-12-01 10:33:22 WARN  High memory usage detected: 85%
+2023-12-01 10:35:18 ERROR Failed to process request: timeout after 30s
+2023-12-01 10:36:01 INFO  User login: jane.smith@company.org
+2023-12-01 10:38:44 DEBUG Processing batch job #12345
+2023-12-01 10:40:12 ERROR Database connection lost
+2023-12-01 10:40:13 INFO  Attempting database reconnection
+2023-12-01 10:40:15 INFO  Database connection restored
+2023-12-01 10:42:33 WARN  API rate limit exceeded for IP 192.168.1.100
+2023-12-01 10:45:21 INFO  User logout: john.doe@example.com
+2023-12-01 10:47:08 DEBUG Cache hit ratio: 94.7%
+2023-12-01 10:50:19 ERROR Invalid JSON payload received
+2023-12-01 10:52:44 INFO  Scheduled backup completed successfully
+2023-12-01 10:55:17 WARN  Disk usage at 78% capacity
+2023-12-01 10:58:33 INFO  User registration: new.user@test.com
+2023-12-01 11:01:22 DEBUG Session cleanup: removed 42 expired sessions
+2023-12-01 11:03:15 ERROR Authentication failed for user: hacker@malicious.net
