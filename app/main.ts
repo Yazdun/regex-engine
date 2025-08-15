@@ -4,11 +4,15 @@ const pattern = args[3];
 const inputLine: string = await Bun.stdin.text();
 
 function matchPattern(inputLine: string, pattern: string): boolean {
-  if (pattern === "\\d") {
-    return Array.from(inputLine).some((char) => "0123456789".includes(char));
-  }
-  if (pattern.length === 1) {
-    return inputLine.includes(pattern);
+  if (pattern.length >= 1) {
+    switch (pattern) {
+      case "\\d":
+        return /\d/.test(inputLine);
+      case "\\w":
+        return /\w/.test(inputLine);
+      default:
+        return inputLine.includes(pattern);
+    }
   } else {
     throw new Error(`Unhandled pattern: ${pattern}`);
   }
