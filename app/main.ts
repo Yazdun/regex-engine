@@ -3,6 +3,25 @@ const pattern = args[3];
 
 const inputLine: string = await Bun.stdin.text();
 
+function matchToken(input: string, token: string): boolean {
+  if (!input[0]) return false;
+  switch (true) {
+    case token === "\\d":
+      return /\d/.test(input[0]);
+    case token === "\\w":
+      return /\w/.test(input[0]);
+    case token.startsWith("[") && token.endsWith("]"):
+      const chars = token.slice(1, -1);
+      if (chars.startsWith("^")) {
+        return !chars.slice(1).includes(input[0]);
+      } else {
+        return chars.includes(input[0]);
+      }
+    default:
+      return input[0] === token;
+  }
+}
+
 function matchPattern(input: string, pattern: string): boolean {
   if (pattern === "") return true;
   if (input === "") return false;
@@ -28,29 +47,19 @@ function matchPattern(input: string, pattern: string): boolean {
       break;
   }
 
-  switch (true) {
-    case token === "\\d":
-      if (!/\d/.test(input[0])) return false;
-      return matchPattern(input.slice(1), restPattern);
-
-    case token === "\\w":
-      if (!/\w/.test(input[0])) return false;
-      return matchPattern(input.slice(1), restPattern);
-
-    case token.startsWith("[") && token.endsWith("]"):
-      const chars = token.slice(1, -1);
-      if (chars.startsWith("^")) {
-        const negChars = chars.slice(1);
-        if (negChars.includes(input[0])) return false;
-      } else {
-        if (!chars.includes(input[0])) return false;
-      }
-      return matchPattern(input.slice(1), restPattern);
-
-    default:
-      if (input[0] !== token) return false;
-      return matchPattern(input.slice(1), restPattern);
+  if (restPattern.startsWith("+")) {
+    restPattern = restPattern.slice(1);
+    let i = 0;
+    while (i < input.length && matchToken(input.slice(i), token)) i++;
+    if (i === 0) return false;
+    for (let j = i; j >= 1; j--) {
+      if (matchPattern(input.slice(j), restPattern)) return true;
+    }
+    return false;
   }
+
+  if (!matchToken(input, token)) return false;
+  return matchPattern(input.slice(1), restPattern);
 }
 
 function matchPatternAnywhere(input: string, pattern: string): boolean {
