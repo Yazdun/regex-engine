@@ -5,7 +5,7 @@ This document demonstrates the comprehensive functionality of our grep implement
 ## Test Data Structure
 
 ```
-test_data/
+mock/
 ├── logs/
 │   ├── app.log          # Application logs with various levels
 │   └── error.log        # System error logs
@@ -21,8 +21,10 @@ test_data/
 ## Test Commands & Results
 
 ### Test 1: Basic Literal String Search
-**Command:** `./run.sh -E "ERROR" test_data/logs/app.log`
+
+**Command:** `./run.sh -E "ERROR" mock/logs/app.log`
 **Purpose:** Demonstrates basic string matching in a single file
+
 ```
 2023-12-01 10:35:18 ERROR Failed to process request: timeout after 30s
 2023-12-01 10:40:12 ERROR Database connection lost
@@ -31,23 +33,27 @@ test_data/
 ```
 
 ### Test 2: Recursive Directory Search
-**Command:** `./run.sh -r -E "function" test_data/`
+
+**Command:** `./run.sh -r -E "function" mock/`
 **Purpose:** Shows recursive search across multiple directories and file types
+
 ```
-test_data/code/main.js:function initializeDatabase() {
-test_data/code/main.js:// User authentication function
-test_data/code/main.js:async function authenticateUser(email, password) {
-test_data/code/main.js:function validateInput(data) {
-test_data/code/main.js:function generateToken() {
-test_data/code/main.js:// Cleanup function for expired sessions
-test_data/code/utils.py:Utility functions for data processing and analysis
-test_data/docs/README.md:│   └── utils.py      # Python utility functions
+mock/code/main.js:function initializeDatabase() {
+mock/code/main.js:// User authentication function
+mock/code/main.js:async function authenticateUser(email, password) {
+mock/code/main.js:function validateInput(data) {
+mock/code/main.js:function generateToken() {
+mock/code/main.js:// Cleanup function for expired sessions
+mock/code/utils.py:Utility functions for data processing and analysis
+mock/docs/README.md:│   └── utils.py      # Python utility functions
 ...
 ```
 
 ### Test 3: Email Pattern Matching
-**Command:** `./run.sh -E "\w+@\w+\.\w+" test_data/logs/app.log`
+
+**Command:** `./run.sh -E "\w+@\w+\.\w+" mock/logs/app.log`
 **Purpose:** Demonstrates word character matching and email pattern recognition
+
 ```
 2023-12-01 10:32:45 INFO  User login: john.doe@example.com
 2023-12-01 10:36:01 INFO  User login: jane.smith@company.org
@@ -57,8 +63,10 @@ test_data/docs/README.md:│   └── utils.py      # Python utility function
 ```
 
 ### Test 4: Start Anchor Patterns
-**Command:** `./run.sh -E "^2023-12-01 10:3" test_data/logs/app.log`
+
+**Command:** `./run.sh -E "^2023-12-01 10:3" mock/logs/app.log`
 **Purpose:** Shows start-of-line anchor functionality
+
 ```
 2023-12-01 10:30:15 INFO  Starting application server on port 8080
 2023-12-01 10:30:16 INFO  Database connection established
@@ -71,29 +79,37 @@ test_data/docs/README.md:│   └── utils.py      # Python utility function
 ```
 
 ### Test 5: End Anchor Patterns
-**Command:** `./run.sh -E "successfully$" test_data/logs/app.log`
+
+**Command:** `./run.sh -E "successfully$" mock/logs/app.log`
 **Purpose:** Demonstrates end-of-line anchor matching
+
 ```
 2023-12-01 10:52:44 INFO  Scheduled backup completed successfully
 ```
 
 ### Test 6: Digit Character Class
-**Command:** `./run.sh -E "port \d+" test_data/logs/app.log`
+
+**Command:** `./run.sh -E "port \d+" mock/logs/app.log`
 **Purpose:** Shows digit character class matching with quantifiers
+
 ```
 2023-12-01 10:30:15 INFO  Starting application server on port 8080
 ```
 
 ### Test 7: Character Groups
-**Command:** `./run.sh -E "808[0-9]" test_data/logs/app.log`
+
+**Command:** `./run.sh -E "808[0-9]" mock/logs/app.log`
 **Purpose:** Demonstrates character group functionality
+
 ```
 2023-12-01 10:30:15 INFO  Starting application server on port 8080
 ```
 
 ### Test 8: Optional Quantifier (?)
-**Command:** `./run.sh -E "users?" test_data/code/main.js`
+
+**Command:** `./run.sh -E "users?" mock/code/main.js`
 **Purpose:** Shows optional matching (0 or 1 occurrences)
+
 ```
     user: 'admin',
 var userSessions = new Map();
@@ -104,8 +120,10 @@ app.get('/api/users/:id', (req, res) => {
 ```
 
 ### Test 9: One-or-More Quantifier (+)
-**Command:** `./run.sh -E "console\.\w+" test_data/code/main.js`
+
+**Command:** `./run.sh -E "console\.\w+" mock/code/main.js`
 **Purpose:** Demonstrates one-or-more matching with word characters
+
 ```
         console.log('Database connected successfully');
         console.error('Failed to connect to database:', error.message);
@@ -115,16 +133,20 @@ app.get('/api/users/:id', (req, res) => {
     console.log(`API version: ${API_VERSION}`);
 ```
 
-### Test 10: Zero-or-More Quantifier (*)
-**Command:** `./run.sh -E "ERROR.*timeout" test_data/logs/error.log`
+### Test 10: Zero-or-More Quantifier (\*)
+
+**Command:** `./run.sh -E "ERROR.*timeout" mock/logs/error.log`
 **Purpose:** Shows zero-or-more matching across characters
+
 ```
 [ERROR] 2023-12-01T10:30:22Z - Connection timeout to database server db1.internal
 ```
 
 ### Test 11: Dot Wildcard Matching
-**Command:** `./run.sh -E "10:..:.." test_data/logs/app.log`
+
+**Command:** `./run.sh -E "10:..:.." mock/logs/app.log`
 **Purpose:** Demonstrates dot wildcard character matching
+
 ```
 2023-12-01 10:30:15 INFO  Starting application server on port 8080
 2023-12-01 10:30:16 INFO  Database connection established
@@ -134,21 +156,25 @@ app.get('/api/users/:id', (req, res) => {
 ```
 
 ### Test 12: Alternation with Multiple Files
-**Command:** `./run.sh -E "(ERROR|FATAL)" test_data/logs/app.log test_data/logs/error.log`
+
+**Command:** `./run.sh -E "(ERROR|FATAL)" mock/logs/app.log mock/logs/error.log`
 **Purpose:** Shows alternation patterns and multi-file search with filename prefixes
+
 ```
-test_data/logs/app.log:2023-12-01 10:35:18 ERROR Failed to process request: timeout after 30s
-test_data/logs/app.log:2023-12-01 10:40:12 ERROR Database connection lost
-test_data/logs/app.log:2023-12-01 10:50:19 ERROR Invalid JSON payload received
-test_data/logs/app.log:2023-12-01 11:03:15 ERROR Authentication failed for user: hacker@malicious.net
-test_data/logs/error.log:[ERROR] 2023-12-01T10:30:22Z - Connection timeout to database server db1.internal
-test_data/logs/error.log:[FATAL] 2023-12-01T10:31:05Z - OutOfMemoryError: Java heap space exceeded
+mock/logs/app.log:2023-12-01 10:35:18 ERROR Failed to process request: timeout after 30s
+mock/logs/app.log:2023-12-01 10:40:12 ERROR Database connection lost
+mock/logs/app.log:2023-12-01 10:50:19 ERROR Invalid JSON payload received
+mock/logs/app.log:2023-12-01 11:03:15 ERROR Authentication failed for user: hacker@malicious.net
+mock/logs/error.log:[ERROR] 2023-12-01T10:30:22Z - Connection timeout to database server db1.internal
+mock/logs/error.log:[FATAL] 2023-12-01T10:31:05Z - OutOfMemoryError: Java heap space exceeded
 ...
 ```
 
 ### Test 13: Negated Character Groups
-**Command:** `./run.sh -E "[^0-9]+" test_data/config.txt`
+
+**Command:** `./run.sh -E "[^0-9]+" mock/config.txt`
 **Purpose:** Demonstrates negated character class matching
+
 ```
 # Application Configuration File
 # Last updated: 2023-12-01
@@ -163,8 +189,10 @@ database=app_production
 ```
 
 ### Test 14: Backreference Patterns
-**Command:** `./run.sh -E "(.)\1+" test_data/code/utils.py`
+
+**Command:** `./run.sh -E "(.)\1+" mock/code/utils.py`
 **Purpose:** Shows backreference functionality for repeated character patterns
+
 ```
 """
 Utility functions for data processing and analysis
@@ -180,8 +208,10 @@ class DataProcessor:
 ```
 
 ### Test 15: Standard Input Processing
+
 **Command:** `echo -e "Hello world\nThis is a test\nworld peace\nwonderful world" | ./run.sh -E "world"`
 **Purpose:** Demonstrates stdin input processing
+
 ```
 Hello world
 world peace
@@ -191,6 +221,7 @@ wonderful world
 ## Feature Summary
 
 ### ✅ Implemented Features
+
 - **Basic Pattern Matching**: Literal string searches
 - **Regex Support**: Full regular expression functionality
 - **Character Classes**: `\w` (word), `\d` (digit), `.` (any character)
@@ -207,6 +238,7 @@ wonderful world
 - **Exit Codes**: Proper exit codes (0 for matches found, 1 for no matches)
 
 ### 🎯 Key Capabilities Demonstrated
+
 1. **Complex Pattern Matching**: Email validation, phone numbers, timestamps
 2. **Multi-File Processing**: Handles various file types and structures
 3. **Recursive Search**: Deep directory traversal
@@ -217,21 +249,25 @@ wonderful world
 ## Usage Instructions
 
 ### Basic Usage
+
 ```bash
 ./run.sh -E "pattern" filename
 ```
 
 ### Multiple Files
+
 ```bash
 ./run.sh -E "pattern" file1 file2 file3
 ```
 
 ### Recursive Search
+
 ```bash
 ./run.sh -r -E "pattern" directory/
 ```
 
 ### Standard Input
+
 ```bash
 echo "text" | ./run.sh -E "pattern"
 cat file.txt | ./run.sh -E "pattern"
@@ -240,6 +276,7 @@ cat file.txt | ./run.sh -E "pattern"
 ## Test Data Generation
 
 The test data includes:
+
 - **Log files**: Realistic application and error logs with timestamps, levels, and events
 - **Source code**: JavaScript and Python files with various programming constructs
 - **Configuration**: Structured configuration files with key-value pairs
@@ -258,46 +295,46 @@ cd codecrafters-grep-typescript
 
 # Run each test (copy and paste these commands)
 echo "=== Test 1: Basic literal string search ==="
-./run.sh -E "ERROR" test_data/logs/app.log
+./run.sh -E "ERROR" mock/logs/app.log
 
 echo "=== Test 2: Recursive search with -r flag ==="
-./run.sh -r -E "function" test_data/
+./run.sh -r -E "function" mock/
 
 echo "=== Test 3: Email pattern matching ==="
-./run.sh -E "\w+@\w+\.\w+" test_data/logs/app.log
+./run.sh -E "\w+@\w+\.\w+" mock/logs/app.log
 
 echo "=== Test 4: Start anchor patterns ==="
-./run.sh -E "^2023-12-01 10:3" test_data/logs/app.log
+./run.sh -E "^2023-12-01 10:3" mock/logs/app.log
 
 echo "=== Test 5: End anchor patterns ==="
-./run.sh -E "successfully$" test_data/logs/app.log
+./run.sh -E "successfully$" mock/logs/app.log
 
 echo "=== Test 6: Digit matching ==="
-./run.sh -E "port \d+" test_data/logs/app.log
+./run.sh -E "port \d+" mock/logs/app.log
 
 echo "=== Test 7: Character groups ==="
-./run.sh -E "808[0-9]" test_data/logs/app.log
+./run.sh -E "808[0-9]" mock/logs/app.log
 
 echo "=== Test 8: Optional quantifier ==="
-./run.sh -E "users?" test_data/code/main.js
+./run.sh -E "users?" mock/code/main.js
 
 echo "=== Test 9: One-or-more quantifier ==="
-./run.sh -E "console\.\w+" test_data/code/main.js
+./run.sh -E "console\.\w+" mock/code/main.js
 
 echo "=== Test 10: Zero-or-more quantifier ==="
-./run.sh -E "ERROR.*timeout" test_data/logs/error.log
+./run.sh -E "ERROR.*timeout" mock/logs/error.log
 
 echo "=== Test 11: Dot wildcard matching ==="
-./run.sh -E "10:..:.." test_data/logs/app.log
+./run.sh -E "10:..:.." mock/logs/app.log
 
 echo "=== Test 12: Alternation with multiple files ==="
-./run.sh -E "(ERROR|FATAL)" test_data/logs/app.log test_data/logs/error.log
+./run.sh -E "(ERROR|FATAL)" mock/logs/app.log mock/logs/error.log
 
 echo "=== Test 13: Negated character groups ==="
-./run.sh -E "[^0-9]+" test_data/config.txt
+./run.sh -E "[^0-9]+" mock/config.txt
 
 echo "=== Test 14: Backreference patterns ==="
-./run.sh -E "(.)\1+" test_data/code/utils.py
+./run.sh -E "(.)\1+" mock/code/utils.py
 
 echo "=== Test 15: Standard input processing ==="
 echo -e "Hello world\nThis is a test\nworld peace\nwonderful world" | ./run.sh -E "world"

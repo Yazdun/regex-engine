@@ -5,7 +5,7 @@ This directory contains sample data for testing the grep implementation.
 ## Directory Structure
 
 ```
-test_data/
+mock/
 ├── README.md          # This documentation file
 ├── logs/             # Log files with various formats
 │   ├── app.log       # Standard application logs
@@ -22,12 +22,14 @@ test_data/
 ### Log Files (`logs/`)
 
 #### app.log
+
 - Standard application logs with INFO, DEBUG, WARN, ERROR levels
 - Contains timestamps, user activities, system events
 - Email addresses, IP addresses, and numeric identifiers
 - Mixed log levels for comprehensive testing
 
 #### error.log
+
 - System error logs with ERROR, WARN, FATAL levels
 - Different timestamp format (ISO 8601)
 - Database errors, network issues, authentication failures
@@ -36,6 +38,7 @@ test_data/
 ### Code Files (`code/`)
 
 #### main.js
+
 - Express.js application with database connectivity
 - User authentication and session management
 - API endpoints and error handling
@@ -43,6 +46,7 @@ test_data/
 - Email validation regex patterns
 
 #### utils.py
+
 - Python utility library with data processing functions
 - Class definitions and type hints
 - Email validation and statistics calculations
@@ -54,11 +58,13 @@ test_data/
 This test data supports various grep functionality tests:
 
 ### Basic Pattern Matching
+
 - Literal string searches
 - Case-sensitive/insensitive matching
 - Word boundaries and exact matches
 
 ### Regular Expressions
+
 - Character classes `[0-9]`, `[a-zA-Z]`
 - Quantifiers `*`, `+`, `?`
 - Anchors `^` (start of line), `$` (end of line)
@@ -66,12 +72,14 @@ This test data supports various grep functionality tests:
 - Word `\w` and digit `\d` character classes
 
 ### Advanced Features
+
 - Alternation patterns with `|`
 - Grouping with parentheses `()`
 - Backreferences `\1`, `\2`, etc.
 - Character group negation `[^...]`
 
 ### File Operations
+
 - Single file search
 - Multiple file search
 - Recursive directory search with `-r` flag
