@@ -55,7 +55,24 @@ function matchPattern(input: string, pattern: string): boolean {
 
 function matchPatternAnywhere(input: string, pattern: string): boolean {
   if (pattern.startsWith("^")) {
-    return matchPattern(input, pattern.slice(1));
+    const subPattern = pattern.slice(1);
+    if (subPattern.endsWith("$")) {
+      return input === subPattern.slice(0, -1);
+    }
+    return matchPattern(input, subPattern);
+  }
+
+  if (pattern.endsWith("$")) {
+    const subPattern = pattern.slice(0, -1);
+    for (let i = 0; i <= input.length; i++) {
+      if (
+        matchPattern(input.slice(i), subPattern) &&
+        i + subPattern.length === input.length
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   for (let i = 0; i <= input.length; i++) {
