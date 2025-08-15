@@ -3,24 +3,61 @@ const pattern = args[3];
 
 const inputLine: string = await Bun.stdin.text();
 
-function matchPattern(inputLine: string, pattern: string): boolean {
-  if (pattern.length >= 1) {
-    switch (pattern) {
-      case "\\d":
-        return /\d/.test(inputLine);
-      case "\\w":
-        return /\w/.test(inputLine);
-      default:
-        if (pattern.startsWith("[") && pattern.endsWith("]")) {
-          const regex = new RegExp(pattern);
-          return regex.test(inputLine);
-        }
+function matchPattern(input: string, pattern: string): boolean {
+  if (pattern === "") return true;
+  if (input === "") return false;
 
-        return inputLine.includes(pattern);
-    }
-  } else {
-    throw new Error(`Unhandled pattern: ${pattern}`);
+  let token: string;
+  let restPattern: string;
+
+  switch (true) {
+    case pattern.startsWith("\\d") || pattern.startsWith("\\w"):
+      token = pattern.slice(0, 2);
+      restPattern = pattern.slice(2);
+      break;
+
+    case pattern.startsWith("[") && pattern.includes("]"):
+      const end = pattern.indexOf("]") + 1;
+      token = pattern.slice(0, end);
+      restPattern = pattern.slice(end);
+      break;
+
+    default:
+      token = pattern[0];
+      restPattern = pattern.slice(1);
+      break;
   }
+
+  switch (true) {
+    case token === "\\d":
+      if (!/\d/.test(input[0])) return false;
+      return matchPattern(input.slice(1), restPattern);
+
+    case token === "\\w":
+      if (!/\w/.test(input[0])) return false;
+      return matchPattern(input.slice(1), restPattern);
+
+    case token.startsWith("[") && token.endsWith("]"):
+      const chars = token.slice(1, -1);
+      if (chars.startsWith("^")) {
+        const negChars = chars.slice(1);
+        if (negChars.includes(input[0])) return false;
+      } else {
+        if (!chars.includes(input[0])) return false;
+      }
+      return matchPattern(input.slice(1), restPattern);
+
+    default:
+      if (input[0] !== token) return false;
+      return matchPattern(input.slice(1), restPattern);
+  }
+}
+
+function matchPatternAnywhere(input: string, pattern: string): boolean {
+  for (let i = 0; i <= input.length; i++) {
+    if (matchPattern(input.slice(i), pattern)) return true;
+  }
+  return false;
 }
 
 if (args[2] !== "-E") {
@@ -28,7 +65,7 @@ if (args[2] !== "-E") {
   process.exit(1);
 }
 
-if (matchPattern(inputLine, pattern)) {
+if (matchPatternAnywhere(inputLine, pattern)) {
   process.exit(0);
 } else {
   process.exit(1);
