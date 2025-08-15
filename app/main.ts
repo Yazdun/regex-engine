@@ -24,7 +24,12 @@ function matchToken(input: string, token: string): boolean {
 
 function matchPattern(input: string, pattern: string): boolean {
   if (pattern === "") return true;
-  if (input === "") return false;
+  if (input === "") {
+    if (pattern.endsWith("?")) {
+      return matchPattern(input, pattern.slice(0, -1));
+    }
+    return false;
+  }
 
   let token: string;
   let restPattern: string;
@@ -56,6 +61,14 @@ function matchPattern(input: string, pattern: string): boolean {
       if (matchPattern(input.slice(j), restPattern)) return true;
     }
     return false;
+  }
+
+  if (restPattern.startsWith("?")) {
+    restPattern = restPattern.slice(1);
+    if (matchToken(input, token) && matchPattern(input.slice(1), restPattern)) {
+      return true;
+    }
+    return matchPattern(input, restPattern);
   }
 
   if (!matchToken(input, token)) return false;
